@@ -5,12 +5,8 @@
   }
 </style>
 <template>
-  <vue-splitter
-    class="container"
-    v-model:percent="modelPercent"
-    :initial-percent="initialPercent"
-    :is-horizontal="isHorizontal"
-  >
+  <vue-splitter class="container" v-model:pixel="modelPixel" :initialPixel="initialPixel" :size-pane="sizePane"
+    use-pixel>
     <template #left-pane>
       <slot name="left-pane">
         {{lorumipsum}}
@@ -31,16 +27,11 @@ import { GenLorum } from './Helpers'
 const props = withDefaults(defineProps<{
   isHorizontal?: boolean,
   sizePane?: "left" | "right" | "top" | "bottom";
-  usePixel?: boolean,
-  percent?: number,
   pixel?: number,
-  initialPercent?: number | string,
   initialPixel?: number | string,
 }>(), {
-  sizePane: "left",
-  usePixel: false,
+  sizePane: "right",
   isHorizontal: false,
-  initialPercent: 50,
   initialPixel: 250,
 })
 
@@ -50,18 +41,17 @@ const emit = defineEmits<{
   (event: 'splitter-click'): void
 }>()
 
-const percent = ref(50)
+const pixel = ref(120);
 
-const modelPercent = computed<number>({
+const modelPixel = computed<number>({
   get() {
-    return !isNaN(Number(props.percent)) ? Number(props.percent) : percent.value
+    return !isNaN(Number(props.pixel)) ? Number(props.pixel) : pixel.value
   },
   set(value) {
     emit('update:percent', value)
-    percent.value = value
+    pixel.value = value
   }
 })
 
 const lorumipsum = GenLorum()
-
 </script>

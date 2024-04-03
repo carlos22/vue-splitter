@@ -20,6 +20,7 @@
 import { reactive, computed } from 'vue'
 import BaseDemo from './BaseDemo.vue'
 import NestingDemo from './NestingDemo.vue'
+import PixelDemo from './PixelDemo.vue'
 import VueSplitter from '../src/vue-splitter.vue'
 
 const propsPercentData = reactive({
@@ -101,13 +102,13 @@ Install using npm or yarn.
 npm i @rmp135/vue-splitter
 ```
 
-Import the component and styling into your component. 
+Import the component and styling into your component.
 
 ```js
 import VueSplitter from '@rmp135/vue-splitter'
 ```
 
-## Usage 
+## Usage
 
 ### Basic
 
@@ -131,6 +132,26 @@ Dragging the splitter bar will shift the content accordingly. You can continue t
   </vue-splitter>
 </template>
 ```
+
+### Pixel
+
+The `use-pixel` control wether to use pixels or percent. The `pixel` v-model behaves similar to the `percent` one.
+To control which of the panes will be absolute sized use the `size-pane` prop.
+
+```vue
+<template>
+  <vue-splitter use-pixel size-pane="right">
+    <template #left-pane>
+      Left Pane content
+    </template>
+    <template #right-pane>
+      Right Pane content
+    </template>
+  </vue-splitter>
+</template>
+```
+
+<PixelDemo />
 
 ### Nesting
 
@@ -186,11 +207,12 @@ import { ref } from 'vue'
 const percent = ref(50)
 </script>
 ```
+
 ### initial-percent
 
 - type: `Number`
 
-Sets the initial percentage of the splitter bar. This allows for a first load static value without having to two-way bind the value. 
+Sets the initial percentage of the splitter bar. This allows for a first load static value without having to two-way bind the value.
 
 <base-demo initial-percent="20"/>
 
@@ -200,6 +222,39 @@ Sets the initial percentage of the splitter bar. This allows for a first load st
 </vue-splitter>
 ```
 
+### use-pixel
+
+- type: `Boolean`
+
+If true the `pixel` prop will be used instead of the `percent`.
+
+### pixel
+
+- type: `Number`
+
+Binds how far, in pixels of the component container, the splitter bar will be. Also available in the percent mode, can
+be used to limit the minimum or maximum in pixels.
+
+::: warning
+When used, you must two-way bind the value using `v-model:pixel` to allow the value to update.
+:::
+
+Otherwise very similar to `percent`
+
+### initial-pixel
+
+- type: `Number`
+
+Sets the initial pixel of the splitter bar. This allows for a first load static value without having to two-way bind the value.
+
+### size-pane
+
+- type: `String`
+
+Defines which of the panes will be sizes, that is important for the pixel mode as the other pane will enlarge / shrink.
+Valid values are `top` `left` `right` `bottom`.
+
+
 ### is-horizontal
 
 - type: `Boolean`
@@ -208,7 +263,7 @@ Sets the initial percentage of the splitter bar. This allows for a first load st
 Displays the splitter as a horizontal bar, placing content on top and below.
 
 ::: tip
-For ease of use, the slot names can be referred to as `top-pane` and `bottom-pane` respectively. 
+For ease of use, the slot names can be referred to as `top-pane` and `bottom-pane` respectively.
 :::
 
 <button v-on:click="isHorizontalData.isHorizontal = !isHorizontalData.isHorizontal">Toggle</button>
@@ -266,6 +321,12 @@ Triggers when the splitter bar moves. See prop [percent](#percent).
 </vue-splitter>
 ```
 
+### update:pixel
+
+- type: Number
+
+Triggers when the splitter bar moves. See prop [pixel](#pixel).
+
 ### splitter-click
 
 - type: void
@@ -283,7 +344,7 @@ Triggers when the splitter bar is clicked.
 
 ## Styling
 
-Classes are applied to the splitter container, panes and bar. 
+Classes are applied to the splitter container, panes and bar.
 
 `.vue-splitter` - The entire component.
 
@@ -367,7 +428,7 @@ The below will reset to 50% when the splitter bar is clicked.
 
 Percent: {{helpersResetOnClickData.percent}}%
 
-<base-demo 
+<base-demo
   v-on:splitter-click="onHelpersResetOnClick"
   v-model:percent="helpersResetOnClickData.percent"
   :initial-percent="helpersResetOnClickData.percent"
@@ -375,8 +436,8 @@ Percent: {{helpersResetOnClickData.percent}}%
 
 ```vue
 <template>
-    <vue-splitter 
-      v-model:percent="percent" 
+    <vue-splitter
+      v-model:percent="percent"
       @splitter-click="onSplitterClick"
     />
 </template>

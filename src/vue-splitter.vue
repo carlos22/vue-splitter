@@ -31,7 +31,7 @@
     :class="{ horizontal: isHorizontal, vertical: !isHorizontal }"
     ref="containerRef"
   >
-    <div 
+    <div
       class="splitter-pane"
       :class="leftPaneClass"
     >
@@ -45,7 +45,7 @@
       @touchstart.passive="onSplitterTouchDown"
       @click="onSplitterClick"
     />
-    <div 
+    <div
       class="splitter-pane"
       :class="rightPaneClass">
       <slot name="right-pane"></slot>
@@ -57,21 +57,30 @@
 import { computed, ref } from 'vue'
 
 const props = withDefaults(defineProps<{
-  isHorizontal?: boolean
+  isHorizontal?: boolean,
+  sizePane?: "left" | "right" | "top" | "bottom";
+  usePixel?: boolean,
   percent?: number,
+  pixel?: number,
   initialPercent?: number | string,
+  initialPixel?: number | string,
 }>(), {
+  sizePane: "left",
+  usePixel: false,
   isHorizontal: false,
-  initialPercent: 50
+  initialPercent: 50,
+  initialPixel: 250,
 })
 
 const emit = defineEmits<{
   (event: 'update:percent', value: number): void
+  (event: 'update:pixel', value: number): void
   (event: 'splitter-click'): void
 }>()
 
 const isActive = ref(false)
 const percent = ref(50)
+const pixel = ref(250)
 const hasMoved = ref(false)
 const dragOffset = ref(0)
 
@@ -89,9 +98,27 @@ const modelPercent = computed<number>({
 
 modelPercent.value = Number(props.initialPercent)
 
+const modelPixel = computed<number>({
+  get() {
+    return props.pixel ?? pixel.value
+  },
+  set(value) {
+    emit('update:pixel', value)
+    pixel.value = value
+  }
+})
+
+modelPixel.value = Number(props.initialPixel)
+
+
+const templateSizes = computed<string>(() => {
+  const size = props.usePixel ? `${modelPixel.value}px` : `${modelPercent.value}%`;
+  return ["top", "left"].includes(props.sizePane)  ? `${size} auto 1fr` : `1fr auto ${size}`
+});
+
 const leftPaneClass = computed(() => props.isHorizontal ? 'top-pane' : 'left-pane')
 const rightPaneClass = computed(() => props.isHorizontal ? 'bottom-pane' : 'right-pane')
-const gridTemplate = computed(() => props.isHorizontal ? `${modelPercent.value}% auto 1fr / none` : `none / ${modelPercent.value}% auto 1fr`)
+const gridTemplate = computed(() => props.isHorizontal ? `${templateSizes.value} / none` : `none / ${templateSizes.value}`)
 const userSelect = computed(() => isActive.value ? 'none' : 'auto')
 
 function onSplitterClick() {
@@ -142,24 +169,31 @@ function onBodyMouseMove(e: MouseEvent) {
 function calculateSplitterPercent(e: MouseEvent | Touch) {
   let offset = dragOffset.value
   let target = containerRef.value as HTMLElement
-  let percent = 0
+  let containerOffset = 0;
+  let pixel = 0
   if (props.isHorizontal) {
     offset += target.offsetTop
     while (target.offsetParent) {
       target = target.offsetParent as HTMLElement
       offset += target.offsetTop
     }
-    percent = Math.floor(((e.pageY - offset) / containerRef.value!.offsetHeight)*10000)/100
+    pixel = (e.pageY - offset);
+    containerOffset = containerRef.value!.offsetHeight;
   } else {
     offset += target.offsetLeft
     while (target.offsetParent) {
       target = target.offsetParent as HTMLElement
       offset += target.offsetLeft
     }
-    percent = Math.floor(((e.pageX - offset) / containerRef.value!.offsetWidth)*10000)/100
+    pixel = (e.pageX - offset);
+    containerOffset = containerRef.value!.offsetWidth;
   }
+  const percent = Math.floor((pixel / containerOffset) * 10000) / 100
+
   if (percent > 0 && percent < 100) {
-    modelPercent.value = percent
+    const sizeLastPane = ["bottom", "right"].includes(props.sizePane)
+    modelPercent.value = sizeLastPane ? 100 - percent : percent;
+    modelPixel.value = sizeLastPane ? containerOffset - pixel : pixel
     hasMoved.value = true
   }
 }
