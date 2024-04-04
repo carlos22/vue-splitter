@@ -6,14 +6,14 @@
       width: 100%;
       > .splitter {
         cursor: ew-resize;
-        width: 5px;
+        width: calc(v-bind(splitterSize) * 1px);
       }
     }
     &.horizontal {
       height: 100%;
       > .splitter {
         cursor: ns-resize;
-        height: 5px;
+        height: calc(v-bind(splitterSize) * 1px);
       }
     }
     .splitter {
@@ -64,12 +64,14 @@ const props = withDefaults(defineProps<{
   pixel?: number,
   initialPercent?: number | string,
   initialPixel?: number | string,
+  splitterSize?: number;
 }>(), {
   sizePane: "left",
   usePixel: false,
   isHorizontal: false,
   initialPercent: 50,
   initialPixel: 250,
+  splitterSize: 5,
 })
 
 const emit = defineEmits<{
@@ -189,11 +191,12 @@ function calculateSplitterPercent(e: MouseEvent | Touch) {
     containerOffset = containerRef.value!.offsetWidth;
   }
   const percent = Math.floor((pixel / containerOffset) * 10000) / 100
+  const splitterSizeInPercent = Math.floor((props.splitterSize / containerOffset) * 10000) / 100
 
   if (percent > 0 && percent < 100) {
     const sizeLastPane = ["bottom", "right"].includes(props.sizePane)
-    modelPercent.value = sizeLastPane ? 100 - percent : percent;
-    modelPixel.value = sizeLastPane ? containerOffset - pixel : pixel
+    modelPercent.value = sizeLastPane ? 100 - percent - splitterSizeInPercent : percent
+    modelPixel.value = sizeLastPane ? containerOffset - pixel - props.splitterSize : pixel
     hasMoved.value = true
   }
 }
